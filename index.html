@@ -17,8 +17,8 @@ header{margin-bottom:14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8
 input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px}.form{display:grid;gap:8px}.pending{border-left:5px solid #f4c66b;padding-left:12px;margin:10px 0}.empty{text-align:center;color:var(--muted);padding:18px}
 @media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
 </style></head><body><div class="app">
-<header><div class="title">🐰 むすめのバイト代</div><div class="sub">やったら申請 → ママが確認 → バイト代GET！</div></header>
-<div class="tabs"><button id="daughterTab" class="tab active">👧 むすめ</button><button id="motherTab" class="tab">👩 ママ</button></div><main id="app"></main></div>
+<header><div class="title">🐰 あさひバイト代きろく</div><div class="sub">やったら申請 → おかあさんが確認 → バイト代GET！</div></header>
+<div class="tabs"><button id="daughterTab" class="tab active">👧 あさひ</button><button id="motherTab" class="tab">👩 おかか</button></div><main id="app"></main></div>
 <script>
 const CHORES=[["朝カーテンをあける",3],["おぶつだんに水をおそなえする",3],["おぶつだんにごはんをおそなえする",3],["洗たくものをたたむ（レベル1）",3],["洗たくものをたたむ（レベル2）",5],["洗たくものをたたむ（レベル3）",7],["食事をならべる",3],["チェーンをあける",3],["おふろそうじ（レベル1）",3],["おふろそうじ（レベル2）",5],["おふろそうじ（レベル3）",7]];
 const KEY="musumeBaitoDataV1";let data;try{data=JSON.parse(localStorage.getItem(KEY)||'{"applications":[]}')}catch(e){data={applications:[]}}
