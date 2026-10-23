@@ -1,9 +1,14 @@
-<!doctype html><html lang="ja"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#fff7e8"><meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.webmanifest"><title>あさひバイト代きろく</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff7e8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<title>あさひバイト代きろく</title>
 <style>
-:root{--bg:#fff8ec;--card:#fff;--text:#3f342b;--muted:#8c7c70;--a:#e98b72;--ok:#77ad79;--line:#eadfd4}
+:root{--bg:#fff8ec;--card:#fff;--text:#3f342b;--muted:#8c7c70;--a:#e98b72;--ok:#77ad79;--line:#eadfd4;--warn:#f4c66b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
 button,input{font:inherit}button{border:0;cursor:pointer}.app{max-width:760px;margin:auto;padding:18px 16px 40px}
 .title{font-size:24px;font-weight:800}.sub,.note,.price{font-size:12px;color:var(--muted)}
@@ -13,32 +18,53 @@ header{margin-bottom:14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8
 .amount{font-size:38px;font-weight:900}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}.stat,.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px}
 .stat b{display:block;font-size:21px;margin-top:3px}.card{margin-bottom:12px}.section-title{font-size:17px;font-weight:800;margin-bottom:8px}
 .chore{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid #f0e8e0}.chore:last-child{border:0}.chore-name{font-weight:700}
-.primary{background:var(--a);color:#fff;padding:9px 14px;border-radius:12px;font-weight:800}.secondary{background:#f4eee8;color:var(--text);padding:9px 13px;border-radius:12px;font-weight:700}.approve{background:var(--ok);color:#fff}
-input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px}.form{display:grid;gap:8px}.pending{border-left:5px solid #f4c66b;padding-left:12px;margin:10px 0}.empty{text-align:center;color:var(--muted);padding:18px}
+.primary{background:var(--a);color:#fff;padding:9px 14px;border-radius:12px;font-weight:800}.secondary{background:#f4eee8;color:var(--text);padding:9px 13px;border-radius:12px;font-weight:700}.approve{background:var(--ok);color:#fff}.cancel{background:#f5e2e0;color:#a34f4c}
+input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px}.form{display:grid;gap:8px}.pending{border-left:5px solid var(--warn);padding-left:12px;margin:10px 0}.empty{text-align:center;color:var(--muted);padding:18px}
+.week{border:1px solid var(--line);border-radius:15px;padding:13px;margin:10px 0}.week-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800}.paid{background:#dfeedd;color:#47784b}.unpaid{background:#fff0cf;color:#8a6828}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 @media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
-</style></head><body><div class="app">
+</style>
+</head>
+<body><div class="app">
 <header><div class="title">🐰 あさひバイト代きろく</div><div class="sub">やったら申請 → おかあさんが確認 → バイト代GET！</div></header>
-<div class="tabs"><button id="daughterTab" class="tab active">👧 あさひ</button><button id="motherTab" class="tab">👩 おかか</button></div><main id="app"></main></div>
+<div class="tabs"><button id="daughterTab" class="tab active">👧 あさひ</button><button id="motherTab" class="tab">👩 おかか</button></div>
+<main id="app"></main></div>
 <script>
 const CHORES=[["朝カーテンをあける",3],["おぶつだんに水をおそなえする",3],["おぶつだんにごはんをおそなえする",3],["洗たくものをたたむ（レベル1）",3],["洗たくものをたたむ（レベル2）",5],["洗たくものをたたむ（レベル3）",7],["食事をならべる",3],["チェーンをあける",3],["おふろそうじ（レベル1）",3],["おふろそうじ（レベル2）",5],["おふろそうじ（レベル3）",7]];
-const KEY="musumeBaitoDataV1";let data;try{data=JSON.parse(localStorage.getItem(KEY)||'{"applications":[]}')}catch(e){data={applications:[]}}
+const KEY="musumeBaitoDataV1";
+let data;try{data=JSON.parse(localStorage.getItem(KEY)||'{"applications":[]}')}catch(e){data={applications:[]}}
+if(!data.applications)data.applications=[];if(!data.paidWeeks)data.paidWeeks={};
 let mode="daughter";const yen=n=>Number(n).toLocaleString("ja-JP")+"円";
 const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
 function sunday(d){let x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-x.getDay());return x}
 function week(d){return sunday(d).toISOString().slice(0,10)}
+function weekEnd(k){let x=new Date(k+"T00:00:00");x.setDate(x.getDate()+6);return x}
+function weekLabel(k){let a=new Date(k+"T00:00:00"),b=weekEnd(k);return (a.getMonth()+1)+"/"+a.getDate()+"〜"+(b.getMonth()+1)+"/"+b.getDate()}
 function ok(){return data.applications.filter(x=>x.status==="approved")}
 function sum(a){return a.reduce((n,x)=>n+Number(x.amount||0),0)}
-function hero(){let n=new Date(),w=week(n),m=n.toISOString().slice(0,7),y=""+n.getFullYear();let a=ok(),W=sum(a.filter(x=>week(x.date)===w)),M=sum(a.filter(x=>x.date.slice(0,7)===m)),Y=sum(a.filter(x=>x.date.slice(0,4)===y));return '<div class="hero"><div class="sub">今週のバイト代</div><div class="amount">'+yen(W)+'</div></div><div class="stats"><div class="stat">今週<b>'+yen(W)+'</b></div><div class="stat">今月<b>'+yen(M)+'</b></div><div class="stat">今年<b>'+yen(Y)+'</b></div><div class="stat">累計<b>'+yen(sum(a))+'</b></div></div>'}
+function hero(){let n=new Date(),w=week(n),m=n.toISOString().slice(0,7),y=""+n.getFullYear(),a=ok();let W=sum(a.filter(x=>week(x.date)===w)),M=sum(a.filter(x=>x.date.slice(0,7)===m)),Y=sum(a.filter(x=>x.date.slice(0,4)===y));return '<div class="hero"><div class="sub">今週のバイト代</div><div class="amount">'+yen(W)+'</div></div><div class="stats"><div class="stat">今週<b>'+yen(W)+'</b></div><div class="stat">今月<b>'+yen(M)+'</b></div><div class="stat">今年<b>'+yen(Y)+'</b></div><div class="stat">累計<b>'+yen(sum(a))+'</b></div></div>'}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function add(name,amount){data.applications.push({id:Date.now()+Math.random(),name,amount:Number(amount),date:new Date().toISOString(),status:"pending"});save();render()}
 function submitChore(i){add(CHORES[i][0],CHORES[i][1])}
 function submitOther(){let n=document.getElementById("otherName").value.trim(),a=Number(document.getElementById("otherAmount").value);if(!n||a<=0){alert("おしごとと金額を入れてね");return}add(n,a)}
-function pending(){let p=data.applications.filter(x=>x.status==="pending").slice().reverse();if(!p.length)return '<div class="empty">申請中のおしごとはないよ😊</div>';return p.map(x=>'<div class="pending"><b>'+esc(x.name)+'</b>　'+yen(x.amount)+'<div class="note">'+new Date(x.date).toLocaleString("ja-JP")+'</div></div>').join("")}
-function daughter(){let rows=CHORES.map((c,i)=>'<div class="chore"><div><div class="chore-name">'+c[0]+'</div><div class="price">'+yen(c[1])+'</div></div><button class="primary" onclick="submitChore('+i+')">申請</button></div>').join("");return hero()+'<div class="card"><div class="section-title">おしごと</div>'+rows+'</div><div class="card"><div class="section-title">そのほか</div><div class="form"><input id="otherName" placeholder="やったこと"><input id="otherAmount" type="number" min="1" step="1" placeholder="金額（円）"><button class="primary" onclick="submitOther()">そのほかを申請</button></div></div><div class="card"><div class="section-title">申請中</div>'+pending()+'</div>'}
-function mother(){let p=data.applications.filter(x=>x.status==="pending").slice().reverse();let list=p.length?p.map(x=>'<div class="pending"><b>'+esc(x.name)+'</b>　'+yen(x.amount)+'<div class="note">'+new Date(x.date).toLocaleString("ja-JP")+'</div><p><button class="primary approve" onclick="approve('+x.id+')">承認</button> <button class="secondary" onclick="reject('+x.id+')">却下</button></p></div>').join(""):'<div class="empty">未確認の申請はありません😊</div>';let h=ok().slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);return hero()+'<div class="card"><div class="section-title">申請を確認</div>'+list+'</div><div class="card"><div class="section-title">承認済み</div>'+(h.length?h.map(x=>'<div class="chore"><span>'+esc(x.name)+'</span><b>'+yen(x.amount)+'</b></div>').join(""):'<div class="empty">まだありません</div>')+'</div><div class="card"><button class="secondary" onclick="resetData()">データを全部リセット</button></div>'}
+function cancelApplication(id){let x=data.applications.find(x=>x.id===id);if(x&&x.status==="pending"&&confirm("この申請を取り消す？")){data.applications=data.applications.filter(x=>x.id!==id);save();render()}}
 function approve(id){let x=data.applications.find(x=>x.id===id);if(x){x.status="approved";save();render()}}
 function reject(id){let x=data.applications.find(x=>x.id===id);if(x){x.status="rejected";save();render()}}
-function resetData(){if(confirm("全部のデータを消します。よろしいですか？")){data={applications:[]};save();render()}}
+function unapprove(id){let x=data.applications.find(x=>x.id===id);if(x&&x.status==="approved"&&confirm("承認を取り消して、申請中に戻す？")){x.status="pending";save();render()}}
+function togglePaid(k){data.paidWeeks[k]=!data.paidWeeks[k];save();render()}
+function daughter(){
+let rows=CHORES.map((c,i)=>'<div class="chore"><div><div class="chore-name">'+c[0]+'</div><div class="price">'+yen(c[1])+'</div></div><button class="primary" onclick="submitChore('+i+')">申請</button></div>').join("");
+let p=data.applications.filter(x=>x.status==="pending").slice().reverse();
+let pending=p.length?p.map(x=>'<div class="pending"><b>'+esc(x.name)+'</b>　'+yen(x.amount)+'<div class="note">'+new Date(x.date).toLocaleString("ja-JP")+'</div><div class="actions"><button class="secondary cancel" onclick="cancelApplication('+x.id+')">申請を取り消す</button></div></div>').join(""):'<div class="empty">申請中のおしごとはないよ😊</div>';
+return hero()+'<div class="card"><div class="section-title">おしごと</div>'+rows+'</div><div class="card"><div class="section-title">そのほか</div><div class="form"><input id="otherName" placeholder="やったこと"><input id="otherAmount" type="number" min="1" step="1" placeholder="金額（円）"><button class="primary" onclick="submitOther()">そのほかを申請</button></div></div><div class="card"><div class="section-title">申請中</div>'+pending+'</div>'}
+function weeksForPayment(){let keys=[...new Set(ok().map(x=>week(x.date)))];let now=week(new Date());if(!keys.includes(now))keys.push(now);return keys.sort().reverse()}
+function mother(){
+let p=data.applications.filter(x=>x.status==="pending").slice().reverse();
+let list=p.length?p.map(x=>'<div class="pending"><b>'+esc(x.name)+'</b>　'+yen(x.amount)+'<div class="note">'+new Date(x.date).toLocaleString("ja-JP")+'</div><div class="actions"><button class="primary approve" onclick="approve('+x.id+')">承認</button><button class="secondary cancel" onclick="reject('+x.id+')">却下</button></div></div>').join(""):'<div class="empty">未確認の申請はありません😊</div>';
+let h=ok().slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,50);
+let hist=h.length?h.map(x=>'<div class="chore"><span>'+esc(x.name)+'</span><span><b>'+yen(x.amount)+'</b><br><button class="secondary" onclick="unapprove('+x.id+')">承認を取り消す</button></span></div>').join(""):'<div class="empty">まだありません</div>';
+let ws=weeksForPayment().map(k=>{let amount=sum(ok().filter(x=>week(x.date)===k)),paid=!!data.paidWeeks[k];return '<div class="week"><div class="week-head"><div><b>'+weekLabel(k)+'</b><div class="note">バイト代 '+yen(amount)+'</div></div><span class="badge '+(paid?'paid':'unpaid')+'">'+(paid?'支払済':'未払い')+'</span></div><div class="actions"><button class="'+(paid?'secondary':'primary')+'" onclick="togglePaid(\''+k+'\')">'+(paid?'未払いに戻す':'支払済にする')+'</button></div></div>'}).join("");
+return hero()+'<div class="card"><div class="section-title">申請を確認</div>'+list+'</div><div class="card"><div class="section-title">承認済み</div>'+hist+'</div><div class="card"><div class="section-title">💰 支払い管理（週単位）</div>'+ws+'</div><div class="card"><button class="secondary" onclick="resetData()">データを全部リセット</button></div>'}
+function resetData(){if(confirm("全部のデータを消します。よろしいですか？")){data={applications:[],paidWeeks:{}};save();render()}}
 function render(){daughterTab.classList.toggle("active",mode==="daughter");motherTab.classList.toggle("active",mode==="mother");app.innerHTML=mode==="daughter"?daughter():mother()}
 daughterTab.onclick=()=>{mode="daughter";render()};motherTab.onclick=()=>{mode="mother";render()};render();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
