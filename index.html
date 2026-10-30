@@ -29,7 +29,7 @@ input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px}.f
 <div class="tabs"><button id="daughterTab" class="tab active">👧 あさひ</button><button id="motherTab" class="tab">👩 おかか</button></div>
 <main id="app"></main></div>
 <script>
-const CHORES=[["朝カーテンをあける",3],["おぶつだんに水をおそなえする",3],["おぶつだんにごはんをおそなえする",3],["洗たくものをたたむ（レベル1）",3],["洗たくものをたたむ（レベル2）",5],["洗たくものをたたむ（レベル3）",7],["食事をならべる",3],["チェーンをあける",3],["おふろそうじ（レベル1）",3],["おふろそうじ（レベル2）",5],["おふろそうじ（レベル3）",7]];
+const CHORES=[["朝カーテンをあける",4],["おぶつだんに水をおそなえする",4],["おぶつだんにごはんをおそなえする",4],["洗たくものをたたむ（レベル1）",4],["洗たくものをたたむ（レベル2）",6],["洗たくものをたたむ（レベル3）",10],["食事をならべる",4],["チェーンをあける",4],["おふろそうじ（レベル1）",4],["おふろそうじ（レベル2）",6],["おふろそうじ（レベル3）",10]];
 const KEY="musumeBaitoDataV1";
 let data;try{data=JSON.parse(localStorage.getItem(KEY)||'{"applications":[]}')}catch(e){data={applications:[]}}
 if(!data.applications)data.applications=[];if(!data.paidWeeks)data.paidWeeks={};
